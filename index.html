@@ -4,121 +4,79 @@
   <meta charset="UTF-8">
   <title>Cash Clicker 💸</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-
-<link rel="apple-touch-icon" href="icon-512x512.png">
-<link rel="apple-touch-icon" sizes="192x192" href="icon-192x192.png">
-<link rel="apple-touch-icon" sizes="512x512" href="icon-512x512.png">
-
-  <!-- STYLE -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <!-- ===== LEFT SIDE ===== -->
-    <div class="left" id="left">
-      <div class="money" id="money">0 €</div>
-      <div class="stats" id="stats">0 €/sec | x1</div>
+  <!-- LEFT -->
+  <div class="left" id="left">
+    <div class="money" id="money">0 €</div>
+    <div class="stats" id="stats">0 €/sec | x1</div>
+    <div id="bill">💵</div>
+  </div>
 
-      <!-- BILLET CLIQUABLE -->
-      <div id="bill">💵</div>
+  <!-- RIGHT -->
+  <div class="right">
+
+    <h2>🏦 Bâtiments</h2>
+
+    <div class="card">
+      <h3>💼 Employé</h3>
+      <p>+1 €/sec</p>
+      <p>Coût : <span>25</span> €</p>
+      <button onclick="buy(1)">Acheter</button>
     </div>
 
-    <!-- ===== RIGHT SIDE ===== -->
-    <div class="right">
+    <div class="card">
+      <h3>🏢 Bureau</h3>
+      <p>+5 €/sec</p>
+      <p>Coût : <span>100</span> €</p>
+      <button onclick="buy(5)">Acheter</button>
+    </div>
 
-      <h2>🏦 Bâtiments</h2>
+    <div class="card">
+      <h3>🏦 Banque</h3>
+      <p>+25 €/sec</p>
+      <p>Coût : <span>1000</span> €</p>
+      <button onclick="buy(25)">Acheter</button>
+    </div>
 
-      <div class="card">
-        <h3>💼 Employé</h3>
-        <p>+1 €/sec</p>
-        <p>Coût : <span>25</span> €</p>
-        <button onclick="buy(1)">Acheter</button>
-      </div>
+    <div class="card">
+      <h3>📈 Hedge Fund</h3>
+      <p>+100 €/sec</p>
+      <p>Coût : <span>5000</span> €</p>
+      <button onclick="buy(100)">Acheter</button>
+    </div>
 
-      <div class="card">
-        <h3>🏢 Bureau</h3>
-        <p>+5 €/sec</p>
-        <p>Coût : <span>100</span> €</p>
-        <button onclick="buy(5)">Acheter</button>
-      </div>
+    <div class="card">
+      <h3>🪙 Crypto Farm</h3>
+      <p>+500 €/sec</p>
+      <p>Coût : <span>20000</span> €</p>
+      <button onclick="buy(500)">Acheter</button>
+    </div>
 
-      <div class="card">
-        <h3>🏦 Banque</h3>
-        <p>+25 €/sec</p>
-        <p>Coût : <span>1000</span> €</p>
-        <button onclick="buy(25)">Acheter</button>
-      </div>
+    <h2 id="prestigeTitle" style="display:none;">🏆 Prestige</h2>
+    <div class="card" id="prestigeCard" style="display:none;">
+      <p>Reset tout et gagne <b>x2 multiplicateur</b></p>
+      <button onclick="prestige()">Faire un Prestige</button>
+    </div>
 
-      <div class="card">
-        <h3>📈 Hedge Fund</h3>
-        <p>+100 €/sec</p>
-        <p>Coût : <span>5000</span> €</p>
-        <button onclick="buy(100)">Acheter</button>
-      </div>
+    <h2>🏆 Achievements</h2>
+    <div class="card" id="achievements">
+      <p>Aucun succès débloqué</p>
+    </div>
 
-      <div class="card">
-        <h3>🪙 Crypto Farm</h3>
-        <p>+500 €/sec</p>
-        <p>Coût : <span>20000</span> €</p>
-        <button onclick="buy(500)">Acheter</button>
-      </div>
-
-      <h2 id="prestigeTitle" style="display:none;">🏆 Prestige</h2>
-
-<div class="card" id="prestigeCard" style="display:none;">
-  <p>Reset tout et gagne <b>x2 multiplicateur</b></p>
-  <button onclick="prestige()">Faire un Prestige</button>
+  </div>
 </div>
 
+<!-- POPUPS -->
+<div id="achievementPopup"></div>
 <div id="prestigeNotif">✨ Prestige disponible !</div>
+<div id="rankPopup"></div>
+<div id="rankDisplay">Non classé</div>
 
-      <h2>🏆 Achievements</h2>
-      <div class="card" id="achievements">
-        <p>Aucun succès débloqué</p>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- POPUP ACHIEVEMENT -->
-  <div id="achievementPopup">🏆 Achievement débloqué !</div>
-
-  <!-- SETTINGS BUTTON -->
-<button id="settingsBtn">⚙️</button>
-
-<!-- SETTINGS MENU -->
-<div id="settingsMenu">
-  <div class="settingsContent">
-    <h2>⚙️ Paramètres</h2>
-
-    <label>
-      <input type="checkbox" id="toggleSound" checked>
-      🔊 Sons
-    </label>
-
-    <label>
-      <input type="checkbox" id="toggleVibration">
-      📳 Vibration (mobile)
-    </label>
-
-    <button onclick="closeSettings()">Fermer</button>
-  </div>
-</div>
-
-  <!-- SCRIPT -->
-  <script src="script.js" defer></script>
-
-  <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(() => console.log('Service Worker registered'))
-    .catch((err) => console.error('Service Worker registration failed:', err));
-}
-</script>
+<script src="script.js" defer></script>
 </body>
 </html>

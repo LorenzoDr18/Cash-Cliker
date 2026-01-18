@@ -3,12 +3,9 @@ let money = 0;
 let perSec = 0;
 let multiplier = 1;
 let totalEarned = 0;
-let totalClicks = 0;
-let bestPerSec = 0;
-let playTime = 0;
-let prestigeCount = 0;
 
 let prestigeUnlocked = false;
+let prestigeCount = 0;
 const PRESTIGE_REQUIREMENT = 50000;
 
 /* COSTS */
@@ -33,31 +30,29 @@ const popup = document.getElementById("achievementPopup");
 const achList = document.getElementById("achievements");
 const left = document.getElementById("left");
 
-const prestigeCard = document.getElementById("prestigeCard");
-const prestigeTitle = document.getElementById("prestigeTitle");
-const prestigeNotif = document.getElementById("prestigeNotif");
-
-/* ===== SOUNDS ===== */
+/* SOUNDS */
 const sounds = {
   click: new Audio("sounds/click.mp3"),
   buy: new Audio("sounds/buy.mp3"),
-  achievement: new Audio("sounds/achievement.mp3")
+  achievement: new Audio("sounds/achievement.mp3"),
+  prestige: new Audio("sounds/prestige_available.mp3"),
+  rankup: new Audio("sounds/rank_up.mp3")
 };
 
 Object.values(sounds).forEach(s => s.volume = 0.5);
 
-let soundUnlocked = false;
+let audioUnlocked = false;
 function unlockSounds() {
-  if (soundUnlocked) return;
-  soundUnlocked = true;
+  if (audioUnlocked) return;
+  audioUnlocked = true;
   Object.values(sounds).forEach(s => {
-    s.play().catch(() => {});
+    s.play().catch(()=>{});
     s.pause();
     s.currentTime = 0;
   });
 }
 
-/* ===== CLICK ===== */
+/* FIX SPAM CLICK */
 bill.addEventListener("mousedown", e => e.preventDefault());
 bill.addEventListener("touchstart", e => e.preventDefault());
 
@@ -69,13 +64,13 @@ bill.addEventListener("click", e => {
   money += multiplier;
   totalEarned += multiplier;
 
-  spawnFloat(e.clientX || innerWidth / 2, e.clientY || innerHeight / 2);
+  spawnFloat(e.clientX, e.clientY);
   checkAchievements();
   checkPrestige();
   updateUI();
 });
 
-/* ===== IDLE ===== */
+/* IDLE */
 setInterval(() => {
   if (perSec > 0) {
     money += perSec * multiplier;
@@ -86,7 +81,7 @@ setInterval(() => {
   }
 }, 1000);
 
-/* ===== BUY ===== */
+/* BUY */
 function buy(amount) {
   const i = gains.indexOf(amount);
   if (money >= costs[i]) {
@@ -101,7 +96,7 @@ function buy(amount) {
   }
 }
 
-/* ===== ACHIEVEMENTS ===== */
+/* ACHIEVEMENTS */
 function checkAchievements() {
   achievements.forEach(a => {
     if (!unlocked.includes(a.name) && a.cond()) {
@@ -113,55 +108,76 @@ function checkAchievements() {
 }
 
 function showAchievement(name) {
-  unlockSounds();
   sounds.achievement.currentTime = 0;
   sounds.achievement.play();
 
   popup.textContent = "🏆 " + name;
-  popup.classList.remove("hide");
   popup.classList.add("show");
-
-  setTimeout(() => popup.classList.add("hide"), 2500);
-  setTimeout(() => popup.classList.remove("show", "hide"), 3500);
+  setTimeout(() => popup.classList.remove("show"), 3000);
 }
 
 function renderAchievements() {
   achList.innerHTML = unlocked.map(a => "✔ " + a).join("<br>");
 }
 
-/* ===== PRESTIGE ===== */
+/* PRESTIGE + RANK */
 function checkPrestige() {
   if (!prestigeUnlocked && money >= PRESTIGE_REQUIREMENT) {
     prestigeUnlocked = true;
+
     prestigeCard.style.display = "block";
     prestigeTitle.style.display = "block";
-    showPrestigeNotif();
+
+    unlockSounds();
+    sounds.prestige.currentTime = 0;
+    sounds.prestige.play();
+
+    showPrestigeNotif(); // 👈 MANQUAIT
   }
 }
 
-function showPrestigeNotif() {
-  prestigeNotif.classList.add("show");
-
-  setTimeout(() => prestigeNotif.classList.add("hide"), 2500);
-  setTimeout(() => {
-    prestigeNotif.classList.remove("show", "hide");
-  }, 3500);
-}
-
 function prestige() {
+  prestigeCount++;
   multiplier *= 2;
+
   money = 0;
   perSec = 0;
   costs = [25, 100, 1000, 5000, 20000];
 
-  prestigeUnlocked = false;
-  prestigeCard.style.display = "none";
-  prestigeTitle.style.display = "none";
+  resetBuildingPrices(); // 👈 FIX ICI
 
+  prestigeUnlocked = false;
+  document.getElementById("prestigeCard").style.display = "none";
+  document.getElementById("prestigeTitle").style.display = "none";
+
+  showRankPopup();
   updateUI();
 }
 
-/* ===== FLOAT ===== */
+function getRank() {
+  if (prestigeCount === 0) return "Non classé";
+
+  if (prestigeCount <= 3)
+    return "🥉 Bronze " + ["I","II","III"][prestigeCount - 1];
+
+  if (prestigeCount <= 6)
+    return "🥈 Silver " + ["I","II","III"][prestigeCount - 4];
+
+  if (prestigeCount <= 9)
+    return "🥇 Gold " + ["I","II","III"][prestigeCount - 7];
+
+  return "💎 Diamond";
+}
+
+function showRankPopup() {
+  const popup = document.getElementById("rankPopup");
+  popup.textContent = getRank();
+  sounds.rankup.play();
+  popup.classList.add("show");
+  setTimeout(() => popup.classList.remove("show"), 2500);
+}
+
+/* FLOAT */
 function spawnFloat(x, y) {
   const el = document.createElement("div");
   el.className = "float";
@@ -172,44 +188,68 @@ function spawnFloat(x, y) {
   setTimeout(() => el.remove(), 1000);
 }
 
-/* ===== UI ===== */
+/* UI */
 function updateUI() {
   moneyEl.textContent = formatNumber(money) + " €";
   statsEl.textContent =
     `${formatNumber(perSec * multiplier)} €/sec | x${multiplier}`;
+
+  const rankEl = document.getElementById("rankDisplay");
+  const rank = getRank();
+  rankEl.textContent = rank;
+
+  rankEl.className = "";
+  if (rank.includes("Bronze")) rankEl.classList.add("bronze");
+  else if (rank.includes("Silver")) rankEl.classList.add("silver");
+  else if (rank.includes("Gold")) rankEl.classList.add("gold");
+  else if (rank.includes("Diamond")) rankEl.classList.add("diamond");
 }
 
-/* ===== Abrev Number ==== */
-
 function formatNumber(n) {
-  if (n >= 1e12) return (n / 1e12).toFixed(2) + "T";
-  if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
   if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
   if (n >= 1e3) return (n / 1e3).toFixed(2) + "k";
   return Math.floor(n);
 }
 
-const settingsBtn = document.getElementById("settingsBtn");
-const settingsMenu = document.getElementById("settingsMenu");
-const toggleSound = document.getElementById("toggleSound");
-const toggleVibration = document.getElementById("toggleVibration");
-
-settingsBtn.addEventListener("click", () => {
-  settingsMenu.classList.add("show");
-});
-
-function closeSettings() {
-  settingsMenu.classList.remove("show");
+function resetBuildingPrices() {
+  const spans = document.querySelectorAll(".card span");
+  spans.forEach((span, i) => {
+    span.textContent = costs[i];
+  });
 }
 
-/* SOUND TOGGLE */
-toggleSound.addEventListener("change", () => {
-  Object.values(sounds).forEach(s => s.muted = !toggleSound.checked);
-});
+function saveGame() {
+  const data = {
+    money,
+    perSec,
+    multiplier,
+    totalEarned,
+    costs,
+    prestigeCount,
+    unlocked
+  };
+  localStorage.setItem("cashClickerSave", JSON.stringify(data));
+}
 
-/* VIBRATION */
-toggleVibration.addEventListener("change", () => {
-  if (toggleVibration.checked && navigator.vibrate) {
-    navigator.vibrate(50);
-  }
-});
+function loadGame() {
+  const save = localStorage.getItem("cashClickerSave");
+  if (!save) return;
+
+  const data = JSON.parse(save);
+
+  money = data.money ?? 0;
+  perSec = data.perSec ?? 0;
+  multiplier = data.multiplier ?? 1;
+  totalEarned = data.totalEarned ?? 0;
+  costs = data.costs ?? costs;
+  prestigeCount = data.prestigeCount ?? 0;
+  unlocked = data.unlocked ?? [];
+
+  resetBuildingPrices();
+  renderAchievements();
+  updateUI();
+}
+
+setInterval(saveGame, 5000);
+loadGame();
+updateUI();
